@@ -6,7 +6,7 @@ Previous version: https://github.com/maglab-uconn/EARSHOT
 
 ## Differences from Earlier version
 
-* Before RNN, Convoultion 1D can be added.
+* Before RNN, Convoultion 1D as prenet can be added.
 * Some arg parser parameters are moved to 'Hyper_Paremeters.py' file.
 * Add pattern generator. Thus, the pattern parameters are changable.
 * Improved pattern generator and analyzer to enable large data learning and analysis in low memory environments
@@ -139,7 +139,7 @@ Previous version: https://github.com/maglab-uconn/EARSHOT
         * When set to None, all patterns will be learned.
     * Test_Only_Identifier_List
         * Determines which talkers are always excluded regardless of the exclusion mode.
-        * If nothing, 'None'
+        * If nothing, 'None'
         * Ex: ['EO', 'JM'] or None
     * Max_Epoch_with_Exclusion
         * Apply 'Exclusion_Mode' and learn to set epoch.
