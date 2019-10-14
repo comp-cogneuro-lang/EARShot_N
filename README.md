@@ -159,8 +159,8 @@ Previous version: https://github.com/maglab-uconn/EARSHOT
         * Determine result and checkpoint save path
     * Result_Split
         * If True, the result data will be stored separately according to 'Batch_Size'.
-         * It is recommended to separate if the environment is with a small memory or if there are a lot of learning patterns.
-         * If False, save as one file.
+        * It is recommended to separate if the environment is with a small memory or if there are a lot of learning patterns.
+        * If False, save as one file.
 
 ## Pattern generate
 ### Command
@@ -168,7 +168,7 @@ Previous version: https://github.com/maglab-uconn/EARSHOT
 python Run.Pattern_Generator.py
 ```
 
-## Run
+## Model run
 ```
 python EARshot.py [parameters]
 ```
