@@ -59,7 +59,7 @@ class EARShot_Model:
         else:
             assert False
 
-        placeholder_Dict = self.pattern_Feeder.placeholder_Dict #Placeholder is variable space. All pattern is inputted by placeholder
+        placeholder_Dict = self.pattern_Feeder.placeholder_Dict #Placeholder is variable space. All patterns are inputted by placeholder
 
         with tf.variable_scope('EARS') as scope:    #Variable name managing.
             batch_Size = tf.shape(placeholder_Dict["Acoustic"])[0]  #Getting a batch size of current pattern
@@ -302,7 +302,7 @@ class EARShot_Model:
         
         self.hidden_Plot_Tensor_List = [tf.transpose(hidden_Activation, perm=[0, 2, 1])]   #In hidden analysis, we only need hidden activation.
 
-        self.tf_Session.run(tf.global_variables_initializer()) #Initialize the weights. Until this code, in Tensorflow, there is no weight.
+        self.tf_Session.run(tf.global_variables_initializer()) #Initialize the weights. Until this code run, in Tensorflow, there is no weight.
         
     #Checkpoint load
     def Restore(self, warning_Ignore = False):
@@ -330,7 +330,7 @@ class EARShot_Model:
         checkpoint = self.extract_Dir + "/Checkpoint/Checkpoint-" + str(self.pattern_Feeder.start_Epoch)    #Getting path of checkpoint.
         try:
             self.tf_Saver.restore(self.tf_Session, checkpoint)  # Loading
-        except tf.errors.NotFoundError: #If there is no checkpoint which is about assigned epcoh, an error occurs.
+        except tf.errors.NotFoundError: #If there is no checkpoint which is about assigned epoch, an error occurs.
             print("here is no checkpoint about the start epoch. Stopped.")
             sys.exit()
         print("Checkpoint '", checkpoint, "' is loaded.")
@@ -379,7 +379,7 @@ class EARShot_Model:
         test_Feed_Dict_List = self.pattern_Feeder.Get_Test_Pattern_List()   #Getting test patterns. To know details, please see 'Pattern_Feeder.py'.  
 
         for feed_Index, feed_Dict in enumerate(test_Feed_Dict_List):
-            global_Step, semantic_Activation = self.tf_Session.run( #In this line, model calucate the results. To know details, please see 'Inference_Step' function.
+            global_Step, semantic_Activation = self.tf_Session.run( #In this line, model calucate the results. To know details, please see 'Tensor_Generate' function.
                 fetches = self.test_Tensor_List,
                 feed_dict = feed_Dict
                 )                        

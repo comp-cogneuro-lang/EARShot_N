@@ -80,7 +80,7 @@ def DAS_Neighborhood_Checker(pronunciation1, pronunciation2):   #Delete, Additio
         return False
 
     #Exceed range
-    elif abs(len(pronunciation1) - len(pronunciation2)) > 1:    #The length difference is bigger than 2, two pronunciations are not related.
+    elif abs(len(pronunciation1) - len(pronunciation2)) > 1:    #The length difference is bigger than 1, two pronunciations are not related.
         return False
 
     #Deletion
