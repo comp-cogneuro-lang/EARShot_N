@@ -1,8 +1,8 @@
 # Setup ----
 rm(list=ls())
 
-library(lme4); library(afex); library(ggplot2); library(tidyr); library(plyr); library(dplyr); 
-library(Rmisc); library(reshape); library(car)
+library(lme4) library(afex) library(ggplot2) library(tidyr) library(plyr) library(dplyr) 
+library(Rmisc) library(reshape) library(car)
 
 base_Dir <- 'F:/'
 talker_List <- c("Agnes", "Alex", "Bruce", "Fred", "Junior", "Kathy", "Princess", "Ralph", "Vicki", "Victoria")

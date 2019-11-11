@@ -1,15 +1,15 @@
-import tensorflow as tf;
-import numpy as np;
+import tensorflow as tf
+import numpy as np
 
 pattern_Parameters = tf.contrib.training.HParams(**{    
-    'Word_List_File': 'Pronunciation_Data_1K.txt',
-    'Voice_Path': 'D:/EARShot_Data/WAV',
-    'Pattern_Path': 'D:/EARShot_Data/PICKLE',
-    'Pattern_Metadata_File_Name': 'METADATA.PICKLE', #'METADATA.PICKLE', #'METADATA.240.PICKLE',
+    'Word_List_File': 'Pronunciation_Data_1K.Temp.txt',
+    'Voice_Path': './WAV',
+    'Pattern_Path': './PICKLE',
+    'Pattern_Metadata_File_Name': 'Metadata.10Talkers.pickle', #'METADATA.PICKLE', #'METADATA.240.PICKLE',
     'Pattern_Use_Bit': 32,  #16 or 32
         
     'Acoutsic_Mode': 'Spectrogram',  #Spectrogram, Mel
-    'Semantic_Mode': 'SRV', #Word2Vec
+    'Semantic_Mode': 'PGD', #SRV, PGD
 
     'Spectrogram': tf.contrib.training.HParams(**{
         'Sample_Rate': 22050,
@@ -32,9 +32,9 @@ pattern_Parameters = tf.contrib.training.HParams(**{
         'Assign_Number': 30,    
         }),   
     
-    'Word2Vec': tf.contrib.training.HParams(**{
-        'DB_File_Path': None,
-        'Size': 300,   
+    'PGD': tf.contrib.training.HParams(**{
+        'Dict_File_Path': 'Word2Vec.Paper1K.Kevin.pydb',
+        'Size': 300,
         }), 
     })
 
@@ -55,16 +55,16 @@ model_Parameters = tf.contrib.training.HParams(**{
         'Except_Keywords': ['lstm', 'gru', 'scrn', 'rnn', 'bias'],
         'Rate': 1e-6
         }),
-    'Test_Timing': 100,
+    'Test_Timing': 200,
     'Checkpoint_Timing': 100,
     'Exclusion_Mode': 'M', #P, T, M, None
     'Test_Only_Identifier_List': None,#[],
     'Max_Epoch_with_Exclusion': 600,
     'Max_Epoch_without_Exclusion': 800,   #This is the value added to 'Max_Epoch_with_Exclusion'.
     'Learning_Rate': 0.002,
-    'Batch_Size': 1000,
+    'Batch_Size': 2000,
     'Max_Queue': 100,
     #'Force_Checkpoint_Load': False,
-    'Extract_Path': 'F:/EARShot.1KW.17T',
+    'Extract_Path': './Test',
     'Result_Split': True
     })

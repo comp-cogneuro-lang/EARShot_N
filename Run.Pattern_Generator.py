@@ -32,6 +32,12 @@ with PE(max_workers = max_Worker) as pe:
            identifier, #In paper, identifier is 'talker'.
            voice_File_Path
            )
+        # Pattern_Generator.Pattern_File_Geneate(
+        #    word,
+        #    pronunciation,
+        #    identifier, #In paper, identifier is 'talker'.
+        #    voice_File_Path
+        #    )
     
 Pattern_Generator.Metadata_Generate()
 #Pattern_Generator.Metadata_Subset_Generate(identifier_List = ["EO", "JM"], metadata_File_Name= "Metadata.Human.pickle")
@@ -40,5 +46,5 @@ Pattern_Generator.Metadata_Generate()
 #    list_240 = [x.strip() for x in f.readlines()]
 #Pattern_Generator.Metadata_Subset_Generate(word_List= list_240, metadata_File_Name= "Metadata.240.pickle")
 
-#Pattern_Generator.Metadata_Subset_Generate(identifier_List = ["Agnes", "Alex", "Bruce", "Fred", "Junior", "Kathy", "Princess", "Ralph", "Vicki", "Victoria"], metadata_File_Name= "Metadata.10Talkers.pickle")
+# Pattern_Generator.Metadata_Subset_Generate(identifier_List = ["Agnes", "Alex", "Bruce", "Fred", "Junior", "Kathy", "Princess", "Ralph", "Vicki", "Victoria"], metadata_File_Name= "Metadata.10Talkers.pickle")
 

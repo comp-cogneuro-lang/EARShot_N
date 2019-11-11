@@ -15,7 +15,6 @@ Previous version: https://github.com/maglab-uconn/EARSHOT
 
 * Tensorflow >=1.13 (It does not support TF 2.0 yet.)
 * Librosa >= 0.7.0
-* Gensim >= 3.8.1 (Only using Word2Vec)
 * FFMPEG
 
 ## Structure
@@ -51,7 +50,7 @@ Previous version: https://github.com/maglab-uconn/EARSHOT
         * 'Spectrogram' or 'Mel'
     * Semantic_Mode
         * Determine which type of semantic pattern use.
-        * 'SRV' or 'Word2Vec'
+        * 'SRV' or 'PGD'
 
     * Spectrogram
         * This parameters are used only 'Acoustic_Mode == 'Spectrogram'
@@ -79,11 +78,10 @@ Previous version: https://github.com/maglab-uconn/EARSHOT
         * Assign_Number
             * Determine How many units have 1. Other units have 0.
     
-    * Word2Vec
-        * This parameters are used only 'Semantic_Mode == 'Word2Vec'
-        * DB_File_Path
-            * The path of Word2Vec dataset file.
-            * Now it is from the gensim based.
+    * PGD
+        * This parameters are used only 'Semantic_Mode == 'PGD'
+        * Dict_File_Path
+            * The path of __pre generated dict__ pickle file.
 
 * Model parameters
     * Hidden_Type
@@ -170,7 +168,7 @@ python Run.Pattern_Generator.py
 
 ## Model run
 ```
-python EARshot.py [parameters]
+python EARShot.py [parameters]
 ```
 ### Parameters
 

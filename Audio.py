@@ -2,11 +2,11 @@
 # https://github.com/carpedm20/multi-speaker-tacotron-tensorflow/blob/master/audio/__init__.py
 # I only changed the hparams to usual parameters from oroginal code.
 
-import numpy as np;
-import tensorflow as tf;
-from scipy import signal;
-import librosa.filters;
-import librosa;
+import numpy as np
+import tensorflow as tf
+from scipy import signal
+import librosa.filters
+import librosa
 
 
 def preemphasis(x, preemphasis = 0.97):

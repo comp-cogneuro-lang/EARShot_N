@@ -1,13 +1,7 @@
-import scipy.io.wavfile as wav
-import os, io, librosa, gzip
+import os, io, librosa
 import numpy as np
 import _pickle as pickle
 from random import shuffle
-from scipy import signal
-from scipy.io import loadmat
-try: from gensim.models import KeyedVectors
-except: pass
-
 from Audio import *
 from Hyper_Parameters import pattern_Parameters
 
@@ -41,9 +35,19 @@ if pattern_Parameters.Semantic_Mode.upper() == "SRV".upper():
             new_Semantic_Pattern[unit_Index] = 1
         semantic_Dict[word] = new_Semantic_Pattern
 
-elif pattern_Parameters.Semantic_Mode.upper() == "Word2Vec".upper():
-    semantic_Dict = KeyedVectors.load_word2vec_format(pattern_Parameters.Word2Vec.DB_File_Path, binary=True)
-    
+elif pattern_Parameters.Semantic_Mode.upper() == "PGD".upper():
+    with open(pattern_Parameters.PGD.Dict_File_Path, 'rb') as f:
+        semantic_Dict = {word.upper(): pattern for word, pattern in pickle.load(f).items() if word.upper() in using_Word_List}
+        
+    pattern_Min, pattern_Max = np.inf, -np.inf
+    for pattern in semantic_Dict.values():
+        pattern_Min =  np.minimum(pattern_Min, np.min(pattern))
+        pattern_Max =  np.maximum(pattern_Max, np.max(pattern))
+    semantic_Dict = {word: (pattern - pattern_Min) / (pattern_Max - pattern_Min) for word, pattern in semantic_Dict.items()}
+
+    if len(semantic_Dict) < len(using_Word_List):
+        raise ValueError('Some words are not in pre generated dict. {} : {}'.format(len(semantic_Dict), len(using_Word_List)))
+
 if not os.path.exists(pattern_Parameters.Pattern_Path):
     os.makedirs(pattern_Parameters.Pattern_Path)
 
@@ -85,7 +89,7 @@ def Pattern_File_Geneate(
 
     if pattern_Parameters.Semantic_Mode.upper() == "SRV".upper():
         new_Pattern_Dict["Semantic"] = semantic_Dict[word].astype(pattern_Bit_Type)
-    elif pattern_Parameters.Semantic_Mode.upper() == "Word2Vec".upper():
+    elif pattern_Parameters.Semantic_Mode.upper() == "PGD".upper():
         new_Pattern_Dict["Semantic"] = semantic_Dict[word].astype(pattern_Bit_Type)
     else:
         assert False
@@ -143,8 +147,8 @@ def Metadata_Generate():
         new_Metadata_Dict["Hyper_Parameter_Dict"]["SRV_Info"] = {
             "Assign_Number": pattern_Parameters.SRV.Assign_Number,
             }
-    elif pattern_Parameters.Semantic_Mode.upper() == "Word2Vec".upper():
-        new_Metadata_Dict["Semantic_Size"] = pattern_Parameters.Word2Vec.Size
+    elif pattern_Parameters.Semantic_Mode.upper() == "PGD".upper():
+        new_Metadata_Dict["Semantic_Size"] = pattern_Parameters.PGD.Size
     else:
         assert False
     new_Metadata_Dict["Pronunciation_Dict"] = pronunciation_Dict   #key: word, value: pronunciation

@@ -6,53 +6,56 @@ from EARShot import EARShot_Model as Model
 from Customized_Functions import Correlation2D, Batch_Correlation2D, Cosine_Similarity2D, Batch_Cosine_Similarity2D, MDS, Z_Score, Wilcoxon_Rank_Sum_Test2D, Mean_Squared_Error2D, Euclidean_Distance2D
 from Hyper_Parameters import pattern_Parameters, model_Parameters
 
-tf_Session = tf.Session()
+tf_Session = tf.Session()   # Session is a manager of Tensorflow. This session is for PSI and FSI calculation
 
 #Talker list
-talker_List = ["Agnes", "Alex", "Bruce", "Fred", "Junior", "Kathy", "Princess", "Ralph", "Vicki", "Victoria"]
-talker_List = [x.upper() for x in talker_List]
+talker_List = ["Agnes", "Alex", "Bruce", "Fred", "Junior", "Kathy", "Princess", "Ralph", "Vicki", "Victoria"]   #Now 10 talkers. If some talkers are added later, add to here.
+talker_List = [x.upper() for x in talker_List]  #Capitalizing of talker
 
 #Feature load
-with open("Phoneme_Feature.txt", "r", encoding='UTF8') as f:
+with open("Phoneme_Feature.txt", "r", encoding='UTF8') as f:    #Load features of each phoneme
     readLines = f.readlines()
 
-feature_List = readLines[0].strip().split("\t")[3:]
-index_feature_Name_Dict = {index: feature_Name.strip() for index, feature_Name in enumerate(feature_List)}
-feature_Name_Index_Dict = {feature_Name.strip(): index for index, feature_Name in index_feature_Name_Dict.items()}
+feature_List = readLines[0].strip().split("\t")[3:] #Feature name list
+index_feature_Name_Dict = {index: feature_Name.strip() for index, feature_Name in enumerate(feature_List)}  # Index to feature name matching
+feature_Name_Index_Dict = {feature_Name.strip(): index for index, feature_Name in index_feature_Name_Dict.items()}  # Feature name to Index matching
 
 #Phoneme list and feature dict
-phoneme_Label_Dict = {}
+phoneme_Label_Dict = {} #key, value: CMU code, IPA
 consonant_List = []
 vowel_List = []
 feature_Dict = {feature_Name: [] for feature_Name in index_feature_Name_Dict.values()}
 
 for readLine in readLines[1:]:
     raw_Data = readLine.strip().split("\t")
-    phoneme_Label_Dict[raw_Data[0]] = raw_Data[1]
+    phoneme_Label_Dict[raw_Data[0]] = raw_Data[1]   #CMU code to IPA matching
     
+    #Checking consonant or vowel
     if raw_Data[2] == "1":
         consonant_List.append(raw_Data[0])
     elif raw_Data[2] == "0":
         vowel_List.append(raw_Data[0])
     
+    # Checking each features have which phoneme
     for feature_Name_Index, value in enumerate([int(feature.strip()) for feature in raw_Data[3:]]):
         if value == 1:
             feature_Dict[index_feature_Name_Dict[feature_Name_Index]].append(raw_Data[0])
 
 phoneme_List = consonant_List + vowel_List
 
-#Diphone
+#Generating diphone
 diphone_Type_List = ["CV", "VC"]
 diphone_List = [consonant + vowel for consonant in consonant_List for vowel in vowel_List] + \
                [vowel + consonant for consonant in consonant_List for vowel in vowel_List]
 
+#CMU code to IPA matching
 diphone_Label_Dict = {}
 for consonant in consonant_List:
-    for vowel in vowel_List:
+    for vowel in vowel_List:    
         diphone_Label_Dict[consonant + vowel] = phoneme_Label_Dict[consonant] + phoneme_Label_Dict[vowel]
         diphone_Label_Dict[vowel + consonant] = phoneme_Label_Dict[vowel] + phoneme_Label_Dict[consonant]
 
-def Export_File_List_Dict_by_Diphone(voice_Path):
+def Export_File_List_Dict_by_Diphone(voice_Path):   #Generating voice file list
     file_List_Dict = {}
     for diphone in diphone_List:        
         file_List_Dict[diphone] = []
@@ -72,16 +75,16 @@ def Export_File_List_Dict_by_Diphone(voice_Path):
 
     return file_List_Dict
 
-def Export_File_List_Dict_by_Single_Phone(voice_Path, front_Focus=True):
+def Export_File_List_Dict_by_Single_Phone(voice_Path, front_Focus=True):    #Generating single phone file list
     file_List_Dict = {}
     for diphone_Type in diphone_Type_List:
         for phoneme in phoneme_List:    
             #file_List_Dict[diphone_Type, phoneme] = []
-            file_List_Dict[phoneme] = []
+            file_List_Dict[phoneme] = []    #Storage of all talker's specific phoneme list
             for talker in talker_List:
                 #file_List_Dict[diphone_Type, phoneme, talker] = []
-                file_List_Dict[phoneme, talker] = []
-
+                file_List_Dict[phoneme, talker] = []    #Storage of specific talker's specific phoneme list
+    
     for root, directory_List, file_Name_List in os.walk(voice_Path):
         for file_Name in file_Name_List:
             file_Name = file_Name.upper()
@@ -91,12 +94,12 @@ def Export_File_List_Dict_by_Single_Phone(voice_Path, front_Focus=True):
 
             file_Path = os.path.join(root, file_Name).replace("\\", "/").upper()
 
-            if diphone_Type == "CV":
+            if diphone_Type == "CV":    #If file is CV, first phoneme is a consonant and second phoneme is a vowel.
                 consonant = diphone[:-2]
                 vowel = diphone[-2:]
                 file_List_Dict[(consonant if front_Focus else vowel)].append(file_Path)
                 file_List_Dict[(consonant if front_Focus else vowel), talker].append(file_Path)
-            elif diphone_Type == "VC":
+            elif diphone_Type == "VC":  #If file is VC, first phoneme is a vowel and second phoneme is a consonant.
                 vowel = diphone[:2]
                 consonant = diphone[2:]
                 file_List_Dict[(vowel if front_Focus else consonant)].append(file_Path)
@@ -104,12 +107,12 @@ def Export_File_List_Dict_by_Single_Phone(voice_Path, front_Focus=True):
 
     return file_List_Dict
 
-def Export_File_List_Dict_by_Feature(voice_Path, front_Focus=True):
+def Export_File_List_Dict_by_Feature(voice_Path, front_Focus=True): #Generating feature file list
     file_List_Dict = {}    
     for feature in feature_List:    
-        file_List_Dict[feature] = []
+        file_List_Dict[feature] = []    #Storage of all talker's specific feature list
         for talker in talker_List:
-            file_List_Dict[feature, talker] = []
+            file_List_Dict[feature, talker] = []    #Storage of specific talker's specific feature list
 
     for root, directory_List, file_Name_List in os.walk(voice_Path):
         for file_Name in file_Name_List:
@@ -119,19 +122,19 @@ def Export_File_List_Dict_by_Feature(voice_Path, front_Focus=True):
                 continue
 
             file_Path = os.path.join(root, file_Name).replace("\\", "/").upper()
-            if diphone_Type == "CV":
+            if diphone_Type == "CV":    #If file is CV, first phoneme is a consonant and second phoneme is a vowel.
                 consonant = diphone[:-2]
                 vowel = diphone[-2:]
                 for feature, feature_Phoneme_List in feature_Dict.items():
-                    if (consonant in feature_Phoneme_List and front_Focus) or (vowel in feature_Phoneme_List and not front_Focus):
+                    if (consonant in feature_Phoneme_List and front_Focus) or (vowel in feature_Phoneme_List and not front_Focus):  #Checking the phoneme is related to the feature.
                         file_List_Dict[feature].append(file_Path)
                         file_List_Dict[feature, talker].append(file_Path)
 
-            elif diphone_Type == "VC":
+            elif diphone_Type == "VC":  #If file is VC, first phoneme is a vowel and second phoneme is a consonant.
                 vowel = diphone[:2]
                 consonant = diphone[2:]
                 for feature, feature_Phoneme_List in feature_Dict.items():
-                    if (consonant in feature_Phoneme_List and not front_Focus) or (vowel in feature_Phoneme_List and front_Focus):
+                    if (consonant in feature_Phoneme_List and not front_Focus) or (vowel in feature_Phoneme_List and front_Focus):  #Checking the phoneme is related to the feature.
                         file_List_Dict[feature].append(file_Path)
                         file_List_Dict[feature, talker].append(file_Path)
 
@@ -146,45 +149,46 @@ def Activation_Dict_Generate(
     batch_Size=1000,
     front_Focus = True,
     ):
+    #Generating pattern path list
     voice_File_Path_List = []
     for root, directory_List, file_Name_List in os.walk(voice_Path):
         for file_Name in file_Name_List:
             voice_File_Path_List.append(os.path.join(root, file_Name).replace("\\", "/"))
-    voice_File_Index_Dict = {file_Name.upper(): index for index, file_Name in enumerate(voice_File_Path_List)}
+    voice_File_Index_Dict = {file_Name.upper(): index for index, file_Name in enumerate(voice_File_Path_List)}  #Pattern to index matching
 
     activation_Tensor = model.hidden_Plot_Tensor_List[0]  #[Batch, Hidden, Time]
     if is_Absolute:
-        activation_Tensor = tf.abs(activation_Tensor)
+        activation_Tensor = tf.abs(activation_Tensor)   #Applying absolute to 'Hidden activation'.
     
-    model.tf_Session.run(model.test_Mode_Turn_On_Tensor_List) #Backup the hidden state        
+    model.tf_Session.run(model.test_Mode_Turn_On_Tensor_List) #Backup the hidden state. Initial hidden state is zero vector.       
 
     activation_List = []
     for batch_Index in range(0, len(voice_File_Path_List), batch_Size):        
-        activation = model.tf_Session.run(
+        activation = model.tf_Session.run(  #In this line, model calucate the hidden activation.
             fetches = activation_Tensor,
             feed_dict = model.pattern_Feeder.Get_Test_Pattern_from_Voice(voice_File_Path_List=voice_File_Path_List[batch_Index:batch_Index+batch_Size])
             )    #[Mini_Batch, Hidden, Time]
-        activation = activation[:, :, time_Range[0]:time_Range[1]]
+        activation = activation[:, :, time_Range[0]:time_Range[1]]  #Using only specific time steps
 
         activation_List.append(activation)
     
-    model.tf_Session.run(model.test_Mode_Turn_Off_Tensor_List)     #Restore the hidden state
+    model.tf_Session.run(model.test_Mode_Turn_Off_Tensor_List)     #Restore the hidden state (not necessary)
 
-    activation = np.vstack(activation_List)    #[Batch, Hidden, Time]
+    activation = np.vstack(activation_List)    #Stacking all hidden activation to single numpy vector [Batch, Hidden, Time]
 
-    activation_Dict_by_Single_Phone = {key: activation[[voice_File_Index_Dict[file_Name] for file_Name in file_Name_List]] for key, file_Name_List in Export_File_List_Dict_by_Single_Phone(voice_Path, front_Focus=front_Focus).items()}
-    activation_Dict_by_Diphone = {key: activation[[voice_File_Index_Dict[file_Name] for file_Name in file_Name_List]] for key, file_Name_List in Export_File_List_Dict_by_Diphone(voice_Path).items()}
-    activation_Dict_by_Feature = {key: activation[[voice_File_Index_Dict[file_Name] for file_Name in file_Name_List]] for key, file_Name_List in Export_File_List_Dict_by_Feature(voice_Path, front_Focus=front_Focus).items()}
+    activation_Dict_by_Single_Phone = {key: activation[[voice_File_Index_Dict[file_Name] for file_Name in file_Name_List]] for key, file_Name_List in Export_File_List_Dict_by_Single_Phone(voice_Path, front_Focus=front_Focus).items()}   #Gathering by phoneme
+    activation_Dict_by_Diphone = {key: activation[[voice_File_Index_Dict[file_Name] for file_Name in file_Name_List]] for key, file_Name_List in Export_File_List_Dict_by_Diphone(voice_Path).items()}  #Gathering by diphone
+    activation_Dict_by_Feature = {key: activation[[voice_File_Index_Dict[file_Name] for file_Name in file_Name_List]] for key, file_Name_List in Export_File_List_Dict_by_Feature(voice_Path, front_Focus=front_Focus).items()} #Gathering by feature
 
     return activation_Dict_by_Single_Phone, activation_Dict_by_Diphone, activation_Dict_by_Feature
 
 def PSI_Dict_Generate(hidden_Size, activation_Dict_by_Single_Phone, criterion_List):
-    #For PSI. The flow disappear
+    #For PSI. The activation is averaged by phoneme and time steps, so the flow information disappear.
     avg_Activation_Dict = {}
-    avg_Activation_Consonant = np.stack([np.mean(activation_Dict_by_Single_Phone[consonant], axis=(0,2)) for consonant in consonant_List], axis = 1) #[Unit, Consonant]
-    avg_Activation_Vowel = np.stack([np.mean(activation_Dict_by_Single_Phone[vowel], axis=(0,2)) for vowel in vowel_List], axis = 1) #[Unit, Vowel]
-    avg_Activation_Dict["All"] = np.hstack([avg_Activation_Consonant, avg_Activation_Vowel])   #[Unit, Phoneme]
-    for talker in talker_List:
+    avg_Activation_Consonant = np.stack([np.mean(activation_Dict_by_Single_Phone[consonant], axis=(0,2)) for consonant in consonant_List], axis = 1) #[Unit, Consonant], Mean and consonant stacking
+    avg_Activation_Vowel = np.stack([np.mean(activation_Dict_by_Single_Phone[vowel], axis=(0,2)) for vowel in vowel_List], axis = 1) #[Unit, Vowel], Mean and vowel stacking
+    avg_Activation_Dict["All"] = np.hstack([avg_Activation_Consonant, avg_Activation_Vowel])   #[Unit, Phoneme], Stacking both of consonant and vowel. 
+    for talker in talker_List:  #If user want talker specific data.
         avg_Activation_Consonant = np.stack([np.mean(activation_Dict_by_Single_Phone[consonant, talker], axis=(0,2)) for consonant in consonant_List], axis = 1) #[Unit, Consonant]
         avg_Activation_Vowel = np.stack([np.mean(activation_Dict_by_Single_Phone[vowel, talker], axis=(0,2)) for vowel in vowel_List], axis = 1) #[Unit, Vowel]
         avg_Activation_Dict[talker] = np.hstack([avg_Activation_Consonant, avg_Activation_Vowel])   #[Unit, Phoneme]
@@ -193,20 +197,21 @@ def PSI_Dict_Generate(hidden_Size, activation_Dict_by_Single_Phone, criterion_Li
     avg_Activation_Placeholder = tf.placeholder(tf.float32, shape=(None,)) #[Phoneme]
     criterion_Placeholder = tf.placeholder(tf.float32)
 
-    tiled_Sample = tf.tile(tf.expand_dims(avg_Activation_Placeholder, axis=1), multiples=[1, tf.shape(avg_Activation_Placeholder)[0]])
+    tiled_Sample = tf.tile(tf.expand_dims(avg_Activation_Placeholder, axis=1), multiples=[1, tf.shape(avg_Activation_Placeholder)[0]])  #The activation array is tiled for 2D calculation.
     
-    positive_Significant_Map_Tensor = tf.sign(tf.clip_by_value(tiled_Sample - (tf.transpose(tiled_Sample) + criterion_Placeholder), 0, 1)) #[Phoneme, Phoneme]
-    negative_Significant_Map_Tensor = tf.sign(tf.clip_by_value(tf.transpose(tiled_Sample) - (tiled_Sample + criterion_Placeholder), 0, 1)) #[Phoneme, Phoneme]
+    #Over criterion, getting 1 point.
+    positive_Significant_Map_Tensor = tf.sign(tf.clip_by_value(tiled_Sample - (tf.transpose(tiled_Sample) + criterion_Placeholder), 0, 1)) #[Phoneme, Phoneme], Comparing each other phonemes by positive direction (Negative becomes 0).
+    negative_Significant_Map_Tensor = tf.sign(tf.clip_by_value(tf.transpose(tiled_Sample) - (tiled_Sample + criterion_Placeholder), 0, 1)) #[Phoneme, Phoneme], Comparing each other phonemes by negative direction (Positive becomes 0).
 
-    positive_PSI_Map_Tensor = tf.reduce_sum(positive_Significant_Map_Tensor, axis=1)    #[Phoneme]
-    negative_PSI_Map_Tensor = tf.reduce_sum(negative_Significant_Map_Tensor, axis=1)    #[Phoneme]
+    positive_PSI_Map_Tensor = tf.reduce_sum(positive_Significant_Map_Tensor, axis=1)    #[Phoneme], Sum score
+    negative_PSI_Map_Tensor = tf.reduce_sum(negative_Significant_Map_Tensor, axis=1)    #[Phoneme], Sum score
 
     psi_Dict = {}
     for talker in ["All"] + talker_List:
         for criterion in criterion_List:
             for direction, map_Tensor in [("Positive", positive_PSI_Map_Tensor), ("Negative", negative_PSI_Map_Tensor)]:
                 psi_Dict[criterion, direction, talker] = np.stack([
-                    tf_Session.run(
+                    tf_Session.run( #Conducting above tensor.
                         fetches= map_Tensor,
                         feed_dict = {
                             avg_Activation_Placeholder: avg_Activation_Dict[talker][unit_Index],
@@ -219,10 +224,10 @@ def PSI_Dict_Generate(hidden_Size, activation_Dict_by_Single_Phone, criterion_Li
     return psi_Dict
 
 def FSI_Dict_Generate(hidden_Size, activation_Dict_by_Feature, criterion_List):
-    #For PSI. The flow disappear
+    #For FSI. The activation is averaged by feature and time steps, so the flow information disappear.
     avg_Activation_Dict = {}
-    avg_Activation_Dict["All"] = np.stack([np.mean(activation_Dict_by_Feature[feature], axis=(0,2)) for feature in feature_List], axis = 1) #[Unit, Feature]
-    for talker in talker_List:
+    avg_Activation_Dict["All"] = np.stack([np.mean(activation_Dict_by_Feature[feature], axis=(0,2)) for feature in feature_List], axis = 1) #[Unit, Feature], Mean and feature stacking
+    for talker in talker_List:  #If user want talker specific data.
         avg_Activation_Dict[talker] = np.stack([np.mean(activation_Dict_by_Feature[feature, talker], axis=(0,2)) for feature in feature_List], axis = 1) #[Unit, Feature]
 
 
@@ -230,20 +235,21 @@ def FSI_Dict_Generate(hidden_Size, activation_Dict_by_Feature, criterion_List):
     avg_Activation_Placeholder = tf.placeholder(tf.float32, shape=(None,)) #[Feature]
     criterion_Placeholder = tf.placeholder(tf.float32)
 
-    tiled_Sample = tf.tile(tf.expand_dims(avg_Activation_Placeholder, axis=1), multiples=[1, tf.shape(avg_Activation_Placeholder)[0]])
+    tiled_Sample = tf.tile(tf.expand_dims(avg_Activation_Placeholder, axis=1), multiples=[1, tf.shape(avg_Activation_Placeholder)[0]])  #The activation array is tiled for 2D calculation.
     
-    positive_Significant_Map_Tensor = tf.sign(tf.clip_by_value(tiled_Sample - (tf.transpose(tiled_Sample) + criterion_Placeholder), 0, 1)) #[Feature, Feature]
-    negative_Significant_Map_Tensor = tf.sign(tf.clip_by_value(tf.transpose(tiled_Sample) - (tiled_Sample + criterion_Placeholder), 0, 1)) #[Feature, Feature]
+    #Over criterion, getting 1 point.
+    positive_Significant_Map_Tensor = tf.sign(tf.clip_by_value(tiled_Sample - (tf.transpose(tiled_Sample) + criterion_Placeholder), 0, 1)) #[Feature, Feature], Comparing each other phonemes by positive direction (Negative becomes 0).
+    negative_Significant_Map_Tensor = tf.sign(tf.clip_by_value(tf.transpose(tiled_Sample) - (tiled_Sample + criterion_Placeholder), 0, 1)) #[Feature, Feature], Comparing each other phonemes by negative direction (Positive becomes 0).
 
-    positive_FSI_Map_Tensor = tf.reduce_sum(positive_Significant_Map_Tensor, axis=1)    #[Feature]
-    negative_FSI_Map_Tensor = tf.reduce_sum(negative_Significant_Map_Tensor, axis=1)    #[Feature]
+    positive_FSI_Map_Tensor = tf.reduce_sum(positive_Significant_Map_Tensor, axis=1)    #[Feature], Sum score
+    negative_FSI_Map_Tensor = tf.reduce_sum(negative_Significant_Map_Tensor, axis=1)    #[Feature], Sum score
 
     fsi_Dict = {}
     for talker in ["All"] + talker_List:
         for criterion in criterion_List:
             for direction, map_Tensor in [("Positive", positive_FSI_Map_Tensor), ("Negative", negative_FSI_Map_Tensor)]:
                 fsi_Dict[criterion, direction, talker] = np.stack([
-                    tf_Session.run(
+                    tf_Session.run( #Conducting above tensor.
                         fetches= map_Tensor,
                         feed_dict = {
                             avg_Activation_Placeholder: avg_Activation_Dict[talker][unit_Index],
@@ -259,21 +265,21 @@ def Map_Squeezing(map_Dict):
     Squeezed_Dict = {}
     selected_Index_Dict = {}
     for key, map in map_Dict.items():
-        selected_Index_Dict[key] = [index for index, sum_SI in enumerate(np.sum(map, axis=0)) if sum_SI > 0]
-        if len(selected_Index_Dict[key]) == 0:
+        selected_Index_Dict[key] = [index for index, sum_SI in enumerate(np.sum(map, axis=0)) if sum_SI > 0]    #Checking there is a significant PSI/FSI value
+        if len(selected_Index_Dict[key]) == 0:  #If all PSI value of single row(unit) is 0, removed.
             selected_Index_Dict[key].append(0)
         Squeezed_Dict[key] = map[:, selected_Index_Dict[key]]
 
     return Squeezed_Dict, selected_Index_Dict
 
-def Export_Map(map_Type, map_Dict, label_Dict, save_Path, prefix="", only_All = True):    
+def Export_Map(map_Type, map_Dict, label_Dict, save_Path, prefix="", only_All = True):  #Export the PSI/FSI to text.
     os.makedirs(save_Path, exist_ok= True)
     os.makedirs(save_Path + "/TXT", exist_ok= True)
         
     for criterion, direction, talker in map_Dict.keys():
-        if only_All and not talker == "All":
+        if only_All and not talker == "All":    #If user use only all talker version.
             continue
-        map = map_Dict[criterion, direction, talker]        
+        map = map_Dict[criterion, direction, talker]    #Getting map       
         if map_Type.upper() == "PSI".upper():
             row_Label_List = [phoneme_Label_Dict[phoneme] for phoneme in phoneme_List]
             column_Label_List = ["Phoneme"]
@@ -294,12 +300,12 @@ def Export_Map(map_Type, map_Dict, label_Dict, save_Path, prefix="", only_All = 
 
 def Phoneme_Flow_Dict_Generate(activation_Dict_by_Single_Phone):
     avg_Activation_Dict = {}
-
-    avg_Activation_Consonant = np.stack([np.mean(activation_Dict_by_Single_Phone[consonant], axis=0) for consonant in consonant_List], axis = 1) #[Unit, Consonant, Time]
-    avg_Activation_Vowel = np.stack([np.mean(activation_Dict_by_Single_Phone[vowel], axis=0) for vowel in vowel_List], axis = 1) #[Unit, Vowel, Time]
-    avg_Activation_Dict["All"] = np.hstack([avg_Activation_Consonant, avg_Activation_Vowel])   #[Unit, Phoneme, Time]
+    #For PSI. The activation is averaged by phoneme.
+    avg_Activation_Consonant = np.stack([np.mean(activation_Dict_by_Single_Phone[consonant], axis=0) for consonant in consonant_List], axis = 1) #[Unit, Consonant, Time], Mean and consonant stacking
+    avg_Activation_Vowel = np.stack([np.mean(activation_Dict_by_Single_Phone[vowel], axis=0) for vowel in vowel_List], axis = 1) #[Unit, Vowel, Time], Mean and vowel stacking
+    avg_Activation_Dict["All"] = np.hstack([avg_Activation_Consonant, avg_Activation_Vowel])   #[Unit, Phoneme, Time], Stacking both of consonant and vowel. 
         
-    for talker in talker_List:
+    for talker in talker_List:  #If user want talker specific data.
         avg_Activation_Consonant = np.stack([np.mean(activation_Dict_by_Single_Phone[consonant, talker], axis=0) for consonant in consonant_List], axis = 1) #[Unit, Consonant, Time]
         avg_Activation_Vowel = np.stack([np.mean(activation_Dict_by_Single_Phone[vowel, talker], axis=0) for vowel in vowel_List], axis = 1) #[Unit, Vowel, Time]
         avg_Activation_Dict[talker] = np.hstack([avg_Activation_Consonant, avg_Activation_Vowel])   #[Unit, Phoneme, Time]
@@ -308,20 +314,20 @@ def Phoneme_Flow_Dict_Generate(activation_Dict_by_Single_Phone):
 
 def Feature_Flow_Dict_Generate(activation_Dict_by_Feature):    
     avg_Activation_Dict = {}
-
-    avg_Activation_Dict["All"] = np.stack([np.mean(activation_Dict_by_Feature[feature], axis=0) for feature in feature_List], axis = 1) #[Unit, Feature, Time]
+    #For FSI. The activation is averaged by phoneme.
+    avg_Activation_Dict["All"] = np.stack([np.mean(activation_Dict_by_Feature[feature], axis=0) for feature in feature_List], axis = 1) #[Unit, Feature, Time], Mean and feature stacking
         
-    for talker in talker_List:
+    for talker in talker_List:  #If user want talker specific data.
         avg_Activation_Dict[talker] = np.stack([np.mean(activation_Dict_by_Feature[feature, talker], axis=0) for feature in feature_List], axis = 1) #[Unit, Feature, Time]
         
     return avg_Activation_Dict
 
 def Export_Flow(flow_Type, flow_Dict, save_Path, prefix="", only_All = True):
     os.makedirs(save_Path, exist_ok= True)
-    os.makedirs(save_Path + "/TXT", exist_ok= True)
+    os.makedirs(save_Path + "/TXT", exist_ok= True) # Flow save directory is generated if there is no directory.
         
     for talker in flow_Dict.keys():
-        if only_All and not talker == "All":
+        if only_All and not talker == "All":    #If user use only all talker version.
             continue
         flow = flow_Dict[talker]
         if flow_Type == "Phoneme":
@@ -344,22 +350,22 @@ def Export_Flow(flow_Type, flow_Dict, save_Path, prefix="", only_All = True):
 
 
 
-def Export_Mean_Activation(activation_Dict, save_Path, prefix="", only_All = True):
+def Export_Mean_Activation(activation_Dict, save_Path, prefix="", only_All = True): #This function is not used now. This is a preliminary function for situations that require analysis of activation values.
     os.makedirs(save_Path, exist_ok= True)
-    os.makedirs(save_Path + "/TXT", exist_ok= True)
+    os.makedirs(save_Path + "/TXT", exist_ok= True) # Save directory is generated if there is no directory.
 
     mean_Activation_Dict = {}
     for key, value in activation_Dict.items():
         if type(key) == str:
             key = (key, 'ALL')
-        mean_Activation_Dict[key] = np.mean(value, axis=(0,2))
+        mean_Activation_Dict[key] = np.mean(value, axis=(0,2))  # [Unit, Phoneme], The activation is averaged by phoneme/feature and time steps, so the flow information disappear.
 
     hidden_Size_List = [x.shape[0] for x in mean_Activation_Dict.values()]
     hidden_Size = hidden_Size_List[0]
     if not all(hidden_Size == x for x in hidden_Size_List):
         assert False
 
-    label_List = sorted(set([label for label, _ in mean_Activation_Dict.keys()]))
+    label_List = sorted(set([label for label, _ in mean_Activation_Dict.keys()]))   #Phoneme or feature list
 
     for talker in ['ALL'] + (talker_List if not only_All else []):
         extract_List = ["\t".join(["Label"] + [str(x) for x in range(hidden_Size)])]
@@ -380,12 +386,12 @@ if __name__ == "__main__":
     extract_Dir = argument_Dict["extract_dir"]
     selected_Epoch = int(argument_Dict["epoch"])
     
-    new_Model = Model(
+    new_Model = Model(  # Generating model
         start_Epoch=selected_Epoch,
         excluded_Talker = None,        
         extract_Dir=extract_Dir
         )
-    new_Model.Restore(warning_Ignore = True)
+    new_Model.Restore(warning_Ignore = True)    #Loading model
     
     activation_Dict = {}
     map_Dict = {}
@@ -393,14 +399,14 @@ if __name__ == "__main__":
     cluster_Dict = {}
     sort_Index_List_Dict = {}
 
-    focus = "Front"
+    focus = "Front" #or 'Back'
     time_Length_List = [10] #[5, 10, 15]
     start_Time_List = [5]   #[0, 1, 2, 3, 4, 5, 6]
-    criterion_List = [np.round(x, 2) for x in np.arange(0, 0.51, 0.01)]
+    criterion_List = [np.round(x, 2) for x in np.arange(0, 0.51, 0.01)] #[0.0, 0.15, 0.2, 0.44]
     
     #Flow
     print('Flow exporting...')
-    time_Range= (0, 35)
+    time_Range= (0, 35) #(start step, end step)
     activation_Dict[focus, "Phoneme"], activation_Dict[focus, "Diphone"], activation_Dict[focus, "Feature"] = \
         Activation_Dict_Generate(model = new_Model, voice_Path= argument_Dict["voice_dir"], time_Range=time_Range, front_Focus = ("Front" in focus))
 
@@ -409,7 +415,7 @@ if __name__ == "__main__":
     flow_Dict[focus, "Feature"] = Feature_Flow_Dict_Generate(activation_Dict[focus, "Feature"])
 
     for flow_Type in ["Phoneme", "Feature"]:
-        Export_Flow(
+        Export_Flow(    #Extract flow text
             flow_Type= flow_Type,
             flow_Dict= flow_Dict[focus, flow_Type],
             save_Path= extract_Dir + "/Hidden_Analysis/E.{}/Flow.{}".format(selected_Epoch, flow_Type),
@@ -417,6 +423,7 @@ if __name__ == "__main__":
             )
 
     #PSI, FSI
+    #Process: Activation calculation -> PSI/FSI map generating -> Squeezing -> Exporting.
     print('PSI and FSI exporting...')    
     for time_Length in time_Length_List:
         for start_Time in start_Time_List:
