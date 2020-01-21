@@ -23,3 +23,13 @@ Previous_R_Script.Bak.zip
 .vscode/.ropeproject/objectdb
 list240.txt
 Diphone_Figure.py
+x.bat
+__pycache__/Audio.cpython-37.pyc
+__pycache__/Customized_Functions.cpython-37.pyc
+__pycache__/EARShot.cpython-37.pyc
+__pycache__/Hyper_Parameters.cpython-37.pyc
+__pycache__/Pattern_Feeder.cpython-37.pyc
+__pycache__/Pattern_Generator.cpython-37.pyc
+__pycache__/SCRNCell.cpython-37.pyc
+__pycache__/ZoneoutLSTMCell.cpython-37.pyc
+.vscode/settings.json

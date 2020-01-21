@@ -219,7 +219,7 @@ python Result_Analysis.py -d ./Results/HM_LSTM.H_512.EM_M.ET_AGNES.IDX_0
 python Result_Analysis.py -d ./Results/HM_LSTM.H_512.EM_M.ET_BRUCE.IDX_2 -tw 5 -th 0.1
 ```
 
-## Hidden analysis
+## Hidden analysis - Diphone based
 ### Command
 
 ```
@@ -247,6 +247,44 @@ python Hidden_Analysis.py [parameters]
 ```
 python Hidden_Analysis.py -d ./Results/HM_LSTM.H_512.EM_M.ET_AGNES.IDX_0 -e 600 -v ./Diphone_wav
 ```
+
+
+## Hidden analysis - Alignment based
+
+Before analysis, alignment data must be generated.
+
+### Generating alignment data
+
+```
+python Alignment_Data_Extractor.py -d <path>
+```
+
+* `-d <path>`
+    * Alignment data directory
+    * Ex. `./WAVS_ONLY_Padded_Alignment`
+
+### Command
+
+```
+python Hidden_Analysis.Alignment.py [parameters]
+```
+
+### Parameters
+
+* `-d <path>`
+    * Results directory to run the analysis on.
+    * This parameter is required.
+    * Ex. `./Results/IDX_0/HM_LSTM.H_512.EM_M.ET_AGNES.IDX_0`
+
+* `-e <int>`
+    * The epoch to run the analysis on.
+    * This parameter is required.
+
+* `-v <path>`
+    * Alignment data directory to be used for hidden analysis
+    * This parameter is required.
+    * Ex. `./WAVS_ONLY_Padded_Alignment`
+
 
 ## RSA analysis
 
