@@ -157,6 +157,9 @@ class Pattern_Feeder:
         shuffle(talker_List)    #Shuffle talker list for determining excluded talker randomly
         word_List = list(set([word for word, talker in self.pattern_Path_Dict.keys()])) #Generating word list
         shuffle(word_List)  #Shuffle word list for Determine excluded word randomly
+
+        for talker in test_Only_Identifier_List:
+            talker_List.remove(talker)
         
         if model_Parameters.Exclusion_Mode.upper() == 'P':  #Only word excluded.
             exclude_Size = len(word_List) // len(talker_List)   #Determine the ratio of excluded word
